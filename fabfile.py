@@ -27,27 +27,32 @@ def inode_usage():
 
 @roles('proxies')
 def uptime():
-    run('uptime')
+    result = run('uptime')
+    return result
 
 
 @roles('proxies')
 def version():
-    run('cat /etc/issue')
+    result = run('cat /etc/issue')
+    return result
 
 
-def get_disk_usage(hosts):
-    host_list = env.roledefs[hosts]
-    return execute(disk_usage, hosts=host_list)
+def get_disk_usage(host_list):
+    host_list = env.roledefs[host_list]
+    result = execute(disk_usage, hosts=host_list)
+    return result
 
 
-def get_version(hosts):
-    host_list = env.roledefs[hosts]
-    return execute(version, hosts=host_list)
+def get_version(host_list):
+    host_list = env.roledefs[host_list]
+    result = execute(version, hosts=host_list)
+    return result
 
 
-def get_uptime(hosts):
-    host_list = env.roledefs[hosts]
-    return execute(uptime, hosts=host_list)
+def get_uptime(host_list):
+    host_list = env.roledefs[host_list]
+    result = execute(uptime, hosts=host_list)
+    return result
 
 
 if __name__ == '__main__':

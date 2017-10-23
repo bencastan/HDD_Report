@@ -19,15 +19,17 @@ def main():
     #print(hello())
     try:
         host_uptime = {}
-        print(type(get_uptime('test')))
         host_uptime=(get_uptime("test"))
         #host_disk_uage=(get_disk_usage('proxies'))
     except:
         print("Error! Closing all ssh connections")
-        disconnect_all()  ## close all open ssh connections
+        disconnect_all()  # close all open ssh connections
 
-    disconnect_all() ## close all open ssh connections
+    disconnect_all()  # close all open ssh connections
+
+    print("I am {} ".format(host_uptime))
     uptime(host_uptime)
+
 
 def print_header():
     print('------------------------------------')
@@ -39,11 +41,11 @@ def print_header():
 def uptime(host):
     # This needs to load the lines into an array / dictionary and then
     # process it, We will want the 3rd line only. and it will need some splitting
+    print
+    print
     print(type(host))
-    print(host.keys())
-    print(host.values())
+    print(host)
 
-    pass
 
 if __name__ == '__main__':
     main()
