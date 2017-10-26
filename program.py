@@ -4,7 +4,11 @@ from fabfile import hello, get_uptime, get_disk_usage, exec_remote_cmd
 from fabric.network import disconnect_all
 from data import Uptime, Filesystem
 
-network_base='.sitesuite.net'
+alert_high = "90"
+alert_med = "75"
+alert_low = "50"
+final_result = []
+
 
 def main():
     print_header()
@@ -15,22 +19,33 @@ def main():
     #Email the report
     #print(hello())
 
-    try:
-        print(uptime(get_uptime("test")))
-        partitions = (disk_usage(get_disk_usage('test')))
-        count = 0
-        while count < len(partitions):
-            print(partitions[count])
-            #f_count = Filesystem(partitions[count])
-            #print(f_count)
-            count += 1
 
+    try:
+        print(uptime(get_uptime("nfs")))
     except:
         print("Error! Closing all ssh connections")
         disconnect_all()  # close all open ssh connections
 
     disconnect_all()  # close all open ssh connections
 
+
+    try:
+        partitions = (disk_usage(get_disk_usage('nfs')))
+        count = 0
+        while count < len(partitions):
+            # Testing for high % utilised filesystems
+            print(partitions[count])
+            if str(partitions[count][5])[:-1] > alert_high:
+                alert_string = (partitions[count][0], partitions[count][6], partitions[count][5])
+                final_result.append(alert_string)
+            count += 1
+    except:
+        print("Error! Closing all ssh connections")
+        disconnect_all()  # close all open ssh connections
+
+    disconnect_all()  # close all open ssh connections
+
+    print(alert_string)
 
 
 def singleton_cmd():
@@ -53,19 +68,6 @@ def print_header():
     print
 
 
-def uptime(host):
-    # This needs to load the lines into an array / dictionary and then
-    # process it,
-
-    for k,v in host.items():
-        hostname = (k)
-        uptimes = str((v))
-        host_uptime_mins = total_mins(uptimes)
-
-        #print("The host {} has the following uptime {} mins".format(hostname, host_uptime_mins))
-    return host_uptime_mins
-
-
 def total_mins(uptimes):
     u = uptimes.split(",")
 
@@ -80,9 +82,23 @@ def total_mins(uptimes):
     host_uptime_hours = (int(host_uptime_days) * 24)
     total = (host_uptime_hours * 60 + int(u[1][:-3]) * 60 + int(u[1][-2:]))
 
-    # int(s[:-3]) * 60 + int(s[-2:])
-
     return total
+
+
+def uptime(host):
+    # This needs to load the lines into an array / dictionary and then
+    # process it,
+
+    for k,v in host.items():
+        hostname = (k)
+        uptimes = str((v))
+        host_uptime_mins = total_mins(uptimes)
+
+        #print("The host {} has the following uptime {} mins".format(hostname, host_uptime_mins))
+    return(host_uptime_mins)
+
+
+
 
 
 def disk_usage(usage):
@@ -90,24 +106,22 @@ def disk_usage(usage):
         hostname = k
         filesystems = v
         result = []
-        #print(type(usage))
-        #print("Host = {}".format(hostname))
         filesystem = (filesystems).split("\r\n")
-        countout = 1 # safe to ignore first line as it is the headers
-        while countout < len(filesystem):
-            line1 = (filesystem[countout]).split(",")
+        count_out = 1 # safe to ignore first line as it is the headers
+        while count_out < len(filesystem):
+            line1 = (filesystem[count_out]).split(",")
             for item in line1:
                 (line3) = str(item.split(" "))
                 i = (line3).split(" ")
-                countin=0
+                count_in=0
                 filesys_countout = []
                 filesys_countout.append(hostname)
-                while countin < len(i):
-                    if i[countin] != "\'\',":
-                        filesys_countout.append((i[countin]).lstrip("\'").rstrip("\',").strip("[\'").rstrip("\']"))
-                    countin += 1
+                while count_in < len(i):
+                    if i[count_in] != "\'\',":
+                        filesys_countout.append((i[count_in]).lstrip("\'").rstrip("\',").strip("[\'").rstrip("\']"))
+                    count_in += 1
                 result.append(filesys_countout)
-            countout += 1
+            count_out += 1
         return result
 
 
