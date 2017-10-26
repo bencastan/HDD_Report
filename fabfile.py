@@ -17,24 +17,26 @@ def hello():
 
 @roles('proxies')
 def disk_usage():
-    run('df')
+    with hide('output', 'running', 'warnings'), settings(warn_only=True):
+        return run('df')
 
 
 @roles('proxies')
 def inode_usage():
-    run('df -i')
+    with hide('output', 'running', 'warnings'), settings(warn_only=True):
+        return run('df -i')
 
 
 @roles('proxies')
 def uptime():
-    result = run('uptime')
-    return result
+    with hide('output', 'running', 'warnings'), settings(warn_only=True):
+        return run('uptime')
 
 
 @roles('proxies')
 def version():
-    result = run('cat /etc/issue')
-    return result
+    with hide('output', 'running', 'warnings'), settings(warn_only=True):
+        return run('cat /etc/issue')
 
 
 def get_disk_usage(host_list):
@@ -54,6 +56,10 @@ def get_uptime(host_list):
     result = execute(uptime, hosts=host_list)
     return result
 
+
+def exec_remote_cmd(cmd):
+    with hide('output', 'running', 'warnings'), settings(warn_only=True):
+        return run(cmd)
 
 if __name__ == '__main__':
     hello()
