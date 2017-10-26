@@ -1,50 +1,114 @@
-from fabfile import hello, get_uptime, get_disk_usage
+import sys
+
+from fabfile import hello, get_uptime, get_disk_usage, exec_remote_cmd
 from fabric.network import disconnect_all
+from data import Uptime, Filesystem
 
 network_base='.sitesuite.net'
-#env.user = 'benc'
-
-#env.roledefs = {
-#    'proxies':['proxy-01' + network_base, 'proxy-02' + network_base, 'proxy-03'+ network_base, 'proxy-04' + network_base, 'proxy-05' + network_base],
-#    'app_servers':['app-01' + network_base, 'app-02' + network_base, 'app-03'+ network_base, 'app-04'+ network_base, 'app-05'+ network_base]
-#}
 
 def main():
     print_header()
     #Get the data from a host
     #Read the data fropm a host
-    #query the data froma host
+    #query the data from a host
     #Generate a reoprt
     #Email the report
     #print(hello())
+
     try:
-        host_uptime = {}
-        host_uptime=(get_uptime("test"))
-        #host_disk_uage=(get_disk_usage('proxies'))
+        print(uptime(get_uptime("test")))
+        partitions = (disk_usage(get_disk_usage('test')))
+        count = 0
+        while count < len(partitions):
+            print(partitions[count])
+            #f_count = Filesystem(partitions[count])
+            #print(f_count)
+            count += 1
+
     except:
         print("Error! Closing all ssh connections")
         disconnect_all()  # close all open ssh connections
 
     disconnect_all()  # close all open ssh connections
 
-    print("I am {} ".format(host_uptime))
-    uptime(host_uptime)
+
+
+def singleton_cmd():
+    #disk_usage(host_disk_uage)
+    cmd_list =['uptime', 'df']
+    for cmd in cmd_list:
+        result = exec_remote_cmd(cmd)
+        if result.succeeded:
+            sys.stdout.write('\n* Command succeeded: ' + cmd+ '\n')
+            sys.stdout.write(result+"\n")
+        else:
+            sys.stdout.write('\n* Command failed: ' + cmd + '\n')
+            sys.stdout.write(result + "\n")
 
 
 def print_header():
     print('------------------------------------')
     print('     HDD CAPACITY Analysing APP')
     print('------------------------------------')
-    print()
+    print
 
 
 def uptime(host):
     # This needs to load the lines into an array / dictionary and then
-    # process it, We will want the 3rd line only. and it will need some splitting
-    print
-    print
-    print(type(host))
-    print(host)
+    # process it,
+
+    for k,v in host.items():
+        hostname = (k)
+        uptimes = str((v))
+        host_uptime_mins = total_mins(uptimes)
+
+        #print("The host {} has the following uptime {} mins".format(hostname, host_uptime_mins))
+    return host_uptime_mins
+
+
+def total_mins(uptimes):
+    u = uptimes.split(",")
+
+    # u[0] = '20:54:20 up 110 days' current time, days
+    # u[1] = '  1:05' == HH:MM, when added to days * (24 * 60) you get the mins, mind you there is some fiddling to
+    #                                   seperate the HH & MM
+    # u[2] = '  1 user' == Users - I ignore this one.
+    # u[3] = '  load average: 2.11', ' 2.28', ' 2.38' == 5 mins_average, 10 mins_average, 15 mins_average
+
+    host_uptime = u[0].split(" ")
+    host_uptime_days = host_uptime[2]
+    host_uptime_hours = (int(host_uptime_days) * 24)
+    total = (host_uptime_hours * 60 + int(u[1][:-3]) * 60 + int(u[1][-2:]))
+
+    # int(s[:-3]) * 60 + int(s[-2:])
+
+    return total
+
+
+def disk_usage(usage):
+    for k, v in usage.items():
+        hostname = k
+        filesystems = v
+        result = []
+        #print(type(usage))
+        #print("Host = {}".format(hostname))
+        filesystem = (filesystems).split("\r\n")
+        countout = 1 # safe to ignore first line as it is the headers
+        while countout < len(filesystem):
+            line1 = (filesystem[countout]).split(",")
+            for item in line1:
+                (line3) = str(item.split(" "))
+                i = (line3).split(" ")
+                countin=0
+                filesys_countout = []
+                filesys_countout.append(hostname)
+                while countin < len(i):
+                    if i[countin] != "\'\',":
+                        filesys_countout.append((i[countin]).lstrip("\'").rstrip("\',").strip("[\'").rstrip("\']"))
+                    countin += 1
+                result.append(filesys_countout)
+            countout += 1
+        return result
 
 
 if __name__ == '__main__':
