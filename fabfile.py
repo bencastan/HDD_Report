@@ -6,6 +6,7 @@ env.user = 'benc'
 env.warn_only=True  # Only warn if erors are encountered, this is to gracefullly close ssh sessions if they timeout
 env.roledefs = {
     'proxies':['proxy-01' + network_base, 'proxy-02' + network_base, 'proxy-03'+ network_base, 'proxy-04' + network_base, 'proxy-05' + network_base],
+    'proxy':['proxy-01' + network_base],
     'app_servers':['app-01' + network_base, 'app-02' + network_base, 'app-03'+ network_base, 'app-04'+ network_base, 'app-05'+ network_base],
     'test':['backup-01' + network_base],
     'nfs':['nfs-01' + network_base],
@@ -41,6 +42,23 @@ def uptime():
 def version():
     with hide('output', 'running', 'warnings'), settings(warn_only=True):
         return run('cat /etc/issue')
+
+
+@roles('proxies')
+def cert_check():
+    with hide('output', 'running', 'warnings'), settings(warn_only=True):
+        print(cmd_string)
+        return run('{}'.format(cmd_string))
+
+
+def get_ssl_certs(host_list, cert_ip):
+    host_list = env.roledefs[host_list]
+    global cmd_string
+    cmd_string = ("'openssl x509 -in /opt/sitesuite/ssl/{}:443.crt -text -noout'".format(cert_ip))
+    result = execute(cert_check, hosts=host_list)
+    print type(result)
+    print("Result == ".format(result))
+    return result
 
 
 def get_disk_usage(host_list):

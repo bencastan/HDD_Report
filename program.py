@@ -1,6 +1,6 @@
 import sys
 
-from fabfile import hello, get_uptime, get_disk_usage, exec_remote_cmd
+from fabfile import hello, get_uptime, get_disk_usage, exec_remote_cmd, get_ssl_certs
 from fabric.network import disconnect_all
 from data import Uptime, Filesystem
 
@@ -20,33 +20,44 @@ def main():
     #print(hello())
 
 
+    # try:
+    #     print(uptime(get_uptime("nfs")))
+    # except:
+    #     print("Error! Closing all ssh connections")
+    #     disconnect_all()  # close all open ssh connections
+    #
+    # disconnect_all()  # close all open ssh connections
+    #
+    #
+    # try:
+    #     partitions = (disk_usage(get_disk_usage('nfs')))
+    #     count = 0
+    #     while count < len(partitions):
+    #         # Testing for high % utilised filesystems
+    #         print(partitions[count])
+    #         if str(partitions[count][5])[:-1] > alert_high:
+    #             alert_string = (partitions[count][0], partitions[count][6], partitions[count][5])
+    #             final_result.append(alert_string)
+    #         count += 1
+    # except:
+    #     print("Error! Closing all ssh connections")
+    #     disconnect_all()  # close all open ssh connections
+    #
+    #
+    #
+    # print(alert_string)
+
     try:
-        print(uptime(get_uptime("nfs")))
+        certs = get_ssl_certs('proxy', '202.76.248.141')
+        print("Cert == ".format(certs))
+        print(type(certs))
+        print(certs)
+
     except:
         print("Error! Closing all ssh connections")
         disconnect_all()  # close all open ssh connections
 
     disconnect_all()  # close all open ssh connections
-
-
-    try:
-        partitions = (disk_usage(get_disk_usage('nfs')))
-        count = 0
-        while count < len(partitions):
-            # Testing for high % utilised filesystems
-            print(partitions[count])
-            if str(partitions[count][5])[:-1] > alert_high:
-                alert_string = (partitions[count][0], partitions[count][6], partitions[count][5])
-                final_result.append(alert_string)
-            count += 1
-    except:
-        print("Error! Closing all ssh connections")
-        disconnect_all()  # close all open ssh connections
-
-    disconnect_all()  # close all open ssh connections
-
-    print(alert_string)
-
 
 def singleton_cmd():
     #disk_usage(host_disk_uage)
